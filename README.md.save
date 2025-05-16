@@ -80,9 +80,12 @@ Pasos para lanzar el escaneo:
 ```bash
 zap.sh
 ```
-.
+
+![](images/zap4.png)
+
 2. Ingresar la URL de la aplicación vulnerable:  
    `http://localhost:3000`
+
 3. Seleccionar **"Escaneo Automático"** y ejecutar el análisis.
 
 ---
@@ -102,122 +105,5 @@ zap.sh
 - Automatizar escaneos en pipelines de **CI/CD** para prevenir fallos antes del despliegue.
 
 ---
-## 🧰 OWASP ZAP CLI
-
-### Instalación
-```bash
-sudo apt install zaproxy -y
-```
-Nikto puede programarse para ejecutarse automáticamente en un cronjob o script CI/CD.
-Ejemplo de cronjob en Linux (ejecuta Nikto diariamente a las 2 AM):
-### Escaneo rápido
-```bash
-zaproxy -cmd -quickurl http://localhost:4000 -quickout scan_result.html
-```
-
----
-
-## ⚙️ CI/CD con ZAP
-
-### GitHub Actions
-`.github/workflows/zap_scan.yml`:
-
-```yaml
-name: DAST Scan
-on: push
-
-jobs:
-  zap_scan:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Instalar OWASP ZAP
-        run: sudo apt-get install zaproxy -y
-
-      - name: Ejecutar escaneo
-        run: zaproxy -cmd -autorun zap_scan.yaml
-
-      - name: Guardar reporte
-        uses: actions/upload-artifact@v3
-        with:
-          name: ZAP-Report
-          path: zap_report.html
-```
-
-`zap_scan.yaml`:
-```yaml
-jobs:
-  - type: spider
-    parameters:
-      url: "http://localhost:4000"
-      maxDuration: 2
-  - type: activeScan
-    parameters:
-      url: "http://localhost:4000"
-      recurse: true
-      maxDuration: 5
-  - type: report
-    parameters:
-      template: traditional-html
-      reportFile: zap_report.html
-      reportTitle: "ZAP Scan Report"
-```
-
----
-
-### GitLab CI/CD
-
-`.gitlab-ci.yml`:
-```yaml
-stages:
-  - dast
-
-zap_scan:
-  stage: dast
-  image: owasp/zap2docker-stable
-  script:
-    - zap.sh -cmd -autorun zap_scan.yaml
-  artifacts:
-    paths:
-      - zap_report.html
-```
-
----
-
-### Jenkins Declarativo
-
-`Jenkinsfile`:
-```groovy
-pipeline {
-  agent any
-  stages {
-    stage('Download OWASP ZAP') {
-      steps {
-        sh 'sudo apt-get install zaproxy -y'
-      }
-    }
-    stage('Run OWASP ZAP Scan') {
-      steps {
-        sh 'zaproxy -cmd -autorun zap_scan.yaml'
-      }
-    }
-    stage('Save Report') {
-      steps {
-        archiveArtifacts artifacts: 'zap_report.html', fingerprint: true
-      }
-    }
-  }
-}
-```
-
----
-
-## 📚 Créditos
-
-
-
-
-
-
-
 
 > 📘 Esta actividad forma parte del módulo de análisis de seguridad en aplicaciones web.
